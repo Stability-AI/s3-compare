@@ -1,0 +1,4 @@
+./s3-compare.py --missing-in right --left-compared-bucket laion-humans --left-inventory-bucket buck-inv --right-compared-bucket s-laion-humans --right-inventory-bucket s-buckets-inventories --work-bucket s3compare --work-path humans --local-workdir . --athena-query-result-location s3://s3compare/queries/humans/ --left-inventory-path laion-humans/laionHumans99 --right-inventory-path s-laion-humans/LaionHumans99 --athena-region us-east-1
+
+./s3-compare.py --missing-in right --left-compared-bucket laion-us-east-1 --left-inventory-bucket buck-inv --right-compared-bucket s-datasets --right-inventory-bucket s-buckets-inventories --work-bucket s3compare --work-path humans --local-workdir . --athena-query-result-location s3://s3compare/queries/humans/ --left-inventory-path laion-us-east-1/laion5b --right-inventory-path s-datasets/Laion5B --athena-region us-east-1 --left-compared-path laion-data --right-compared-path laion5b
+
