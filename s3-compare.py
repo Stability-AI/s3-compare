@@ -46,9 +46,10 @@ class Work(Bucket):
 
 
 class Inventory(Bucket):
-    def __init__(self, bucket, path, work, compared_bucket):
+    def __init__(self, bucket, path, work, compared_bucket, starting_path):
         super().__init__(bucket, path)
         self.compared_bucket = compared_bucket
+        self.starting_path = starting_path
         self.work = work
         self.s3 = boto3.client('s3')
         table_name_suffix = self.compared_bucket.replace('-', '_').replace('.', '_')
@@ -161,12 +162,12 @@ class Compare(object):
             CREATE TABLE {table_name}
             WITH (format='PARQUET') AS
             SELECT
-              table1.key AS table1_key, table2.key AS table2_key
+              REPLACE(table1.key, '{self.left_inventory.starting_path}', '') AS table1_key, REPLACE(table2.key, '{self.right_inventory.starting_path}', '') AS table2_key
             FROM
               {self.left_inventory.table_name} table1
             {join_type} JOIN
               {self.right_inventory.table_name} table2
-            USING (key)
+            ON REPLACE(table1.key, '{self.left_inventory.starting_path}', '') = REPLACE(table2.key, '{self.right_inventory.starting_path}', '')
         ''')
 
     def find_missing_keys(self, join_type):
@@ -205,7 +206,9 @@ class Runner(object):
             local_workdir,
             athena_query_result_location,
             athena_schema,
-            athena_region):
+            athena_region,
+            left_compared_path="",
+            right_compared_path=""):
         work = Work(
             athena_query_result_location=athena_query_result_location,
             athena_schema=athena_schema,
@@ -221,12 +224,14 @@ class Runner(object):
                 bucket=left_inventory_bucket,
                 path=left_inventory_path,
                 compared_bucket=left_compared_bucket,
+                starting_path=left_compared_path
             ),
             right_inventory=Inventory(
                 work=work,
                 bucket=right_inventory_bucket,
                 path=right_inventory_path,
                 compared_bucket=right_compared_bucket,
+                starting_path=right_compared_path
             ),
         )
         self.filters = [
@@ -284,6 +289,11 @@ def parse_arguments():
         help='The name of the left bucket to be compared',
     )
     parser.add_argument(
+        '--left-compared-path',
+        required=False,
+        help='The starting path to compare content (it will be stripped from object key)',
+    )
+    parser.add_argument(
         '--left-inventory-bucket',
         required=True,
         help='The name of the left inventory bucket (the bucket containing the actual '
@@ -299,6 +309,11 @@ def parse_arguments():
         '--right-compared-bucket',
         required=True,
         help='The name of the right bucket to be compared',
+    )
+    parser.add_argument(
+        '--right-compared-path',
+        required=False,
+        help='The starting path to compare content (it will be stripped from object key)',
     )
     parser.add_argument(
         '--right-inventory-bucket',
