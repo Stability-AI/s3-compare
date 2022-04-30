@@ -2,6 +2,9 @@
 
 `s3-compare.py` is a script for comparing very large S3 buckets using S3 inventories and Athena.
 
+## Improvements in this fork
+while the original script can compare two complete buckets, this fork introduces entry points/starting paths to compare the content of 2 buckets with specific prefix. This is useful if parts of a bucket are replicated to some folder under another bucket. Usage is described in help.
+
 ## Note
 This script *does not* compare the bucket keys' content, only their existence.
 
@@ -61,3 +64,6 @@ After the script finishes executing, you should find a file named `00-find_table
 in the directory provided as the `--local-workdir` option.
 This file will contain all keys that are missing in the `--missing-in` bucket
 but exist in the other bucket.
+
+## Examples (how to format the parameters)
+Check commands.sh file for examples
